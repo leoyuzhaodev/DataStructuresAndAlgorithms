@@ -1,5 +1,7 @@
 package com.yzf.ch09;
 
+import java.util.Scanner;
+
 /**
  * @description:HashTableDemo
  * @author:leo_yuzhao
@@ -8,18 +10,54 @@ package com.yzf.ch09;
 public class HashTableDemo {
 
     public static void main(String[] args) {
-        Emp emp1 = new Emp(1, "张三", "北京");
-        Emp emp2 = new Emp(2, "张四", "北京");
-        Emp emp3 = new Emp(3, "张五", "北京");
-        Emp emp4 = new Emp(12, "张六", "北京");
+        test5();
+    }
 
+    private static void test5() {
+        Scanner scanner = new Scanner(System.in);
+        boolean flag = true;
         EmpHashTable empHashTable = new EmpHashTable(10);
-        empHashTable.add(emp1);
-        empHashTable.add(emp2);
-        empHashTable.add(emp3);
-        empHashTable.add(emp4);
-        empHashTable.show();
-
+        while (flag) {
+            System.out.println("* ************************ *");
+            System.out.println("1,添加(add)");
+            System.out.println("2,删除(delete)");
+            System.out.println("3,查找(find)");
+            System.out.println("4,遍历(show)");
+            System.out.println("5,退出(exit)");
+            System.out.println("* ************************ *");
+            System.out.println("请选择操作(add/delete/find/show)：");
+            String opt = scanner.next();
+            switch (opt) {
+                case "add":
+                    System.out.println("请输入id:");
+                    int id = scanner.nextInt();
+                    System.out.println("请输入姓名:");
+                    String name = scanner.next();
+                    empHashTable.addAndSort(new Emp(id, name, null));
+                    break;
+                case "delete":
+                    System.out.println("请输入id:");
+                    id = scanner.nextInt();
+                    empHashTable.delete(id);
+                    break;
+                case "find":
+                    System.out.println("请输入id:");
+                    id = scanner.nextInt();
+                    Emp emp = empHashTable.find(id);
+                    System.out.println("查找结果：" + (emp == null ? "未找到" : emp));
+                    break;
+                case "show":
+                    empHashTable.show();
+                    break;
+                case "exit":
+                    flag = false;
+                    System.out.println("正在退出......");
+                    break;
+                default:
+                    System.out.println("操作输入有误!");
+                    break;
+            }
+        }
     }
 
     public static void test1() {
@@ -27,6 +65,47 @@ public class HashTableDemo {
         empLinkedList.add(new Emp(1, "张三", "北京"));
         empLinkedList.add(new Emp(2, "李四", "上海"));
         empLinkedList.list();
+    }
+
+    public static void test2() {
+        EmpLinkedList empLinkedList = new EmpLinkedList();
+        empLinkedList.addAndSort(new Emp(2, "张三", "北京"));
+        empLinkedList.addAndSort(new Emp(1, "李四", "上海"));
+        empLinkedList.addAndSort(new Emp(3, "王五", "武汉"));
+        empLinkedList.addAndSort(new Emp(5, "马六", "武汉"));
+        empLinkedList.addAndSort(new Emp(0, "赵七", "武汉"));
+        empLinkedList.list();
+    }
+
+    public static void test3() {
+        EmpLinkedList empLinkedList = new EmpLinkedList();
+        empLinkedList.addAndSort(new Emp(2, "张三", "北京"));
+        empLinkedList.addAndSort(new Emp(1, "李四", "上海"));
+        empLinkedList.addAndSort(new Emp(3, "王五", "武汉"));
+        empLinkedList.addAndSort(new Emp(5, "马六", "武汉"));
+        empLinkedList.addAndSort(new Emp(0, "赵七", "武汉"));
+        System.out.println("原始链表");
+        empLinkedList.list();
+        System.out.println("删除id:0");
+        empLinkedList.delete(0);
+        empLinkedList.list();
+        System.out.println("删除id:5");
+        empLinkedList.delete(5);
+        empLinkedList.list();
+        System.out.println("删除id:3");
+        empLinkedList.delete(3);
+        empLinkedList.list();
+        empLinkedList.delete(0);
+    }
+
+    public static void test4() {
+        EmpLinkedList empLinkedList = new EmpLinkedList();
+        empLinkedList.addAndSort(new Emp(2, "张三", "北京"));
+        empLinkedList.addAndSort(new Emp(1, "李四", "上海"));
+        empLinkedList.addAndSort(new Emp(3, "王五", "武汉"));
+        empLinkedList.addAndSort(new Emp(5, "马六", "武汉"));
+        empLinkedList.addAndSort(new Emp(0, "赵七", "武汉"));
+        System.out.println(empLinkedList.find(2));
     }
 }
 
@@ -62,6 +141,39 @@ class EmpHashTable {
     }
 
     /**
+     * 获取插入元素的位置
+     *
+     * @return
+     */
+    public int getPosition(Integer id) {
+        return id % this.size;
+    }
+
+    /**
+     * 有序插入
+     *
+     * @param emp
+     */
+    public void addAndSort(Emp emp) {
+        this.empLinkedLists[getPosition(emp)].addAndSort(emp);
+    }
+
+    /**
+     * 删除
+     *
+     * @param id
+     */
+    public void delete(Integer id) {
+        this.empLinkedLists[getPosition(id)].delete(id);
+    }
+
+
+    // 查找
+    public Emp find(Integer id) {
+        return this.empLinkedLists[getPosition(id)].find(id);
+    }
+
+    /**
      * 遍历HashTable数据
      */
     public void show() {
@@ -84,7 +196,113 @@ class EmpLinkedList {
     private Emp head;
 
     /**
-     * 添加员工
+     * 根据id查找
+     *
+     * @param id
+     * @return
+     */
+    public Emp find(Integer id) {
+        if (id == null) {
+            System.out.println("id为空，无法查找!");
+            return null;
+        } else if (isEmpty()) {
+            System.out.println("链表为空，无法查找!");
+            return null;
+        } else {
+            Emp cur = head;
+            while (cur != null) {
+                if (cur.getId() == id) {
+                    return cur;
+                }
+                cur = cur.getNext();
+            }
+            return null;
+        }
+    }
+
+    /**
+     * 删除
+     *
+     * @param id
+     */
+    public void delete(Integer id) {
+        if (id == null) {
+            System.out.println("id为空，无法删除!");
+            return;
+        } else if (isEmpty()) {
+            System.out.println("链表为空，无法删除!");
+            return;
+        } else {
+            // 1，寻找删除位置
+            Emp cur = head;
+            Emp last = null;
+            Emp temp = null;
+            boolean flag = false;
+            while (cur != null) {
+                if (cur.getId() == id) {
+                    flag = true;
+                    break;
+                }
+                last = cur;
+                cur = cur.getNext();
+            }
+            // 2，执行删除
+            if (flag) {
+                if (last == null) {
+                    // 说明删除头节点
+                    temp = head.getNext();
+                    head.setNext(null);
+                    head = temp;
+                } else {
+                    last.setNext(last.getNext().getNext());
+                }
+            } else {
+                System.out.printf("未找到id：%d，的节点，无法删除！\n", id);
+            }
+        }
+
+    }
+
+    /**
+     * 有序添加
+     *
+     * @param emp
+     */
+    public void addAndSort(Emp emp) {
+        if (head == null) {
+            head = emp;
+        } else {
+            // 获取链表尾部节点
+            Emp cur = head;
+            Emp last = null;
+
+            // 找插入点
+            while (cur != null) {
+                if (cur.getId() == emp.getId()) {
+                    System.out.printf("重复id：%d，emp:%s，无法添加!\n", emp.getId(), emp);
+                    return;
+                } else if (emp.getId() < cur.getId()) {
+                    break;
+                }
+                last = cur;
+                cur = cur.getNext();
+            }
+
+            // 执行插入
+            if (last == null) {
+                // 说明在插入点在链表的头部
+                emp.setNext(head);
+                head = emp;
+            } else {
+                // 在中间或者是尾部插入
+                emp.setNext(last.getNext());
+                last.setNext(emp);
+            }
+        }
+    }
+
+    /**
+     * 添加员工，且 id 不能重复
      *
      * @param emp
      */
@@ -95,6 +313,10 @@ class EmpLinkedList {
             // 获取链表尾部节点
             Emp cur = head;
             while (cur.getNext() != null) {
+                if (cur.getId() == emp.getId()) {
+                    System.out.printf("重复id:%d，无法添加!\n", emp.getId());
+                    return;
+                }
                 cur = cur.getNext();
             }
             // 添加
