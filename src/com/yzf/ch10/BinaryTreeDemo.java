@@ -23,7 +23,7 @@ public class BinaryTreeDemo {
     }
 
     public static void main(String[] args) {
-        test4();
+        test6();
     }
 
     public static void test1() {
@@ -45,6 +45,22 @@ public class BinaryTreeDemo {
         System.out.println(heroTreeNode);
     }
 
+    public static void test5() {
+        System.out.println("删除前（前序遍历）：");
+        heroTree.preShow();
+        heroTree.delete(3);
+        System.out.println("删除后（前序遍历）：");
+        heroTree.preShow();
+    }
+
+    public static void test6() {
+        System.out.println("删除前（前序遍历）：");
+        heroTree.preShow();
+        boolean delete = heroTree.deleteV1(1);
+        System.out.println((delete ? "刪除成功..." : "删除失败..."));
+        System.out.println("删除后（前序遍历）：");
+        heroTree.preShow();
+    }
 }
 
 class HeroTree {
@@ -107,7 +123,7 @@ class HeroTree {
     }
 
     /**
-     * 中序查找
+     * 后序查找
      *
      * @param id
      * @return
@@ -115,6 +131,42 @@ class HeroTree {
     public HeroTreeNode postOrderFind(Integer id) {
         return this.root.postOrderFind(id);
     }
+
+    /**
+     * 删除
+     * 删除规则：如果删除的节点是叶节点那么就直接删除，如果删除的节点是一个子树也直接删除
+     *
+     * @param id
+     * @return
+     */
+    public boolean delete(Integer id) {
+
+        // 判断头节点是否是要删除的节点
+        if (root.getId() == id) {
+            root = null;
+            return true;
+        }
+        return root.delete(id);
+    }
+
+    // 删除1
+    // 删除规则：当删除的节点（A）含有子节点时：
+    // 如果 A 节点只有一个子节点 B，那么就让子节点 B 替代节点 A
+    // 如果 A 节点有两个子节点 B C，那么就让子节点 B 替代节点 A
+    public boolean deleteV1(Integer id) {
+        // 判断头节点是否是要删除的节点
+        if (root.getId() == id) {
+            if (root.getLeft() != null) {
+                root = root.getLeft();
+            } else {
+                root = null;
+            }
+            return true;
+        }
+        return root.deleteV1(id);
+    }
+
+
 }
 
 class HeroTreeNode {
@@ -327,4 +379,96 @@ class HeroTreeNode {
         return null;
     }
 
+    /**
+     * 删除树节点
+     * 删除规则：如果删除的节点是叶节点那么就直接删除，如果删除的节点是一个子树也直接删除
+     *
+     * @param id
+     * @return 是否删除成功
+     */
+    public boolean delete(Integer id) {
+        HeroTreeNode cur = this;
+        // 删除
+        if (cur.left != null && cur.left.id == id) {
+            // 断开与左边节点的链接
+            cur.left = null;
+            return true;
+        }
+
+        if (cur.right != null && cur.right.id == id) {
+            // 断开与右边节点的链接
+            cur.right = null;
+            return true;
+        }
+
+        // 向左边递归删除
+        boolean flag = false;
+        if (cur.left != null) {
+            flag = cur.left.delete(id);
+            if (flag) {
+                return flag;
+            }
+        }
+
+        if (cur.right != null) {
+            flag = cur.right.delete(id);
+            if (flag) {
+                return flag;
+            }
+        }
+
+        return flag;
+    }
+
+
+    /**
+     * 删除树节点
+     * 删除规则：当删除的节点（A）含有子节点时：
+     * 如果 A 节点只有一个子节点 B，那么就让子节点 B 替代节点 A
+     * 如果 A 节点有两个子节点 B C，那么就让子节点 B 替代节点 A
+     *
+     * @param id
+     * @return 是否删除成功
+     */
+    public boolean deleteV1(Integer id) {
+        HeroTreeNode cur = this;
+        // 删除
+        if (cur.left != null && cur.left.id == id) {
+            // 断开与左边节点的链接
+            if (cur.left.left != null) {
+                cur.left = cur.left.left;
+            } else {
+                cur.left = null;
+            }
+            return true;
+        }
+
+        if (cur.right != null && cur.right.id == id) {
+            // 断开与右边节点的链接
+            if (cur.right.left != null) {
+                cur.right = cur.right.left;
+            } else {
+                cur.right = null;
+            }
+            return true;
+        }
+
+        // 向左边递归删除
+        boolean flag = false;
+        if (cur.left != null) {
+            flag = cur.left.delete(id);
+            if (flag) {
+                return flag;
+            }
+        }
+
+        if (cur.right != null) {
+            flag = cur.right.delete(id);
+            if (flag) {
+                return flag;
+            }
+        }
+
+        return flag;
+    }
 }
