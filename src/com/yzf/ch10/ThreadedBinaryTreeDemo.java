@@ -17,10 +17,11 @@ public class ThreadedBinaryTreeDemo {
         t1.setRight(t3);
         t2.setLeft(t4);
         t2.setRight(t5);
-        t3.setRight(t6);
+        t3.setLeft(t6);
         ThreadedTree threadedTree = new ThreadedTree(t1);
         threadedTree.infixThreadedTree();
         System.out.println();
+        threadedTree.infixThreadedShow();
     }
 }
 
@@ -53,14 +54,15 @@ class ThreadedTree {
         if (node.getLeft() != null) {
             infixThreadedTree(node.getLeft());
         }
-        // 线索化当前节点
+        // 线索化当前节点/处理前驱节点
         if (node.getLeft() == null) {
             // 设置当前节点左指针类型
             node.setLeftType(1);
             // 设置当前节点的前驱节点
             node.setLeft(pre);
         }
-        // 处理上一个节点的后继节点问题
+        // 处理上一个节点的后继节点问题，注意判断表达式：pre.getRight() == null 十分重要
+        // right == null 说明该节点的 right 指向的是后继节点，也就说 rightType == 1
         if (pre != null && pre.getRight() == null) {
             // 设置上一个节点的右指针类型
             pre.setRightType(1);
@@ -74,6 +76,45 @@ class ThreadedTree {
             infixThreadedTree(node.getRight());
         }
     }
+
+    /**
+     * 遍历中序线索化二叉树
+     */
+    public void infixThreadedShow() {
+        if (root == null) {
+            System.out.println("当前树为空，无法线索化...");
+        } else {
+            infixThreadedShow(root);
+        }
+    }
+
+    private void infixThreadedShow(ThreadedTreeNode node) {
+        if (node == null) {
+            return;
+        }
+        // 向左找
+        while (node.getLeftType() == 0) {
+            node = node.getLeft();
+        }
+
+        // 输出当前节点
+        System.out.println(node);
+
+        // 输出当前节点的后继节点
+        while (node.getRightType() == 1) {
+            System.out.println(node.getRight());
+            node = node.getRight();
+        }
+        node = node.getRight();
+        infixThreadedShow(node);
+    }
+
+    // 后序线索化二叉树
+    // 遍历中序线索化二叉树
+
+    // 前序线索化二叉树
+    // 遍历中序线索化二叉树
+
 }
 
 
@@ -142,7 +183,7 @@ class ThreadedTreeNode {
 
     @Override
     public String toString() {
-        return "HeroTreeNode{" +
+        return "ThreadedTreeNode{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
