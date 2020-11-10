@@ -6,7 +6,10 @@ package com.yzf.ch10;
  * @date:2020/11/8
  */
 public class ThreadedBinaryTreeDemo {
-    public static void main(String[] args) {
+
+    private static ThreadedTree threadedTree = null;
+
+    static {
         ThreadedTreeNode t1 = new ThreadedTreeNode(1, "张三");
         ThreadedTreeNode t2 = new ThreadedTreeNode(2, "李四");
         ThreadedTreeNode t3 = new ThreadedTreeNode(3, "王五");
@@ -18,10 +21,29 @@ public class ThreadedBinaryTreeDemo {
         t2.setLeft(t4);
         t2.setRight(t5);
         t3.setLeft(t6);
-        ThreadedTree threadedTree = new ThreadedTree(t1);
+        threadedTree = new ThreadedTree(t1);
+    }
+
+    public static void main(String[] args) {
+        test2();
+        System.out.println();
+    }
+
+    /**
+     * 测试中序线索化二叉树相关
+     */
+    public static void test1() {
         threadedTree.infixThreadedTree();
         System.out.println();
         threadedTree.infixThreadedShow();
+    }
+
+    /**
+     * 测试前序线索化二叉树相关
+     */
+    public static void test2() {
+        threadedTree.preThreadedTree();
+        threadedTree.preThreadedTreeShow();
     }
 }
 
@@ -88,6 +110,39 @@ class ThreadedTree {
         }
     }
 
+    /**
+     * 遍历中序线索化二叉树,循环实现
+     *
+     * @param node
+     */
+    private void infixThreadedShowV1(ThreadedTreeNode node) {
+
+        while (node != null) {
+            // 向左找
+            while (node.getLeftType() == 0) {
+                node = node.getLeft();
+            }
+
+            // 输出当前节点
+            System.out.println(node);
+
+            // 输出当前节点的后继节点
+            while (node.getRightType() == 1) {
+                System.out.println(node.getRight());
+                node = node.getRight();
+            }
+
+            // 重置node节点，此处代码很重要否则就会形成死循环
+            node = node.getRight();
+        }
+
+    }
+
+    /**
+     * 遍历中序线索化二叉树,递归实现
+     *
+     * @param node
+     */
     private void infixThreadedShow(ThreadedTreeNode node) {
         if (node == null) {
             return;
@@ -110,10 +165,82 @@ class ThreadedTree {
     }
 
     // 后序线索化二叉树
-    // 遍历中序线索化二叉树
+    // 遍历后序线索化二叉树
 
-    // 前序线索化二叉树
-    // 遍历中序线索化二叉树
+    /**
+     * 前序线索化二叉树
+     */
+    public void preThreadedTree() {
+        if (root == null) {
+            System.out.println("当前树为空，无法线索化...");
+        } else {
+            preThreadedTree(root);
+        }
+    }
+
+    /**
+     * 前序线索化二叉树
+     *
+     * @param node
+     */
+    public void preThreadedTree(ThreadedTreeNode node) {
+
+        // 处理当前节点的前驱节点
+        if (node.getLeft() == null) {
+            node.setLeftType(1);
+            node.setLeft(pre);
+        }
+
+        // 处理前一个节点的后继节点
+        if (pre != null && pre.getRight() == null) {
+            pre.setRight(node);
+            pre.setRightType(1);
+        }
+
+        // 重置 pre
+        pre = node;
+
+        // 左递归
+        if (node.getLeft() != null && node.getLeftType() == 0) {
+            preThreadedTree(node.getLeft());
+        }
+
+        // 右递归
+        if (node.getRight() != null && node.getRightType() == 0) {
+            preThreadedTree(node.getRight());
+        }
+
+    }
+
+    /**
+     * 遍历前序线索化二叉树
+     */
+    public void preThreadedTreeShow() {
+        if (root == null) {
+            System.out.println("当前树为空，无法线索化...");
+        } else {
+            preThreadedTreeShow(root);
+        }
+    }
+
+    /**
+     * 遍历前序线索化二叉树
+     *
+     * @param node
+     */
+    public void preThreadedTreeShow(ThreadedTreeNode node) {
+
+        while (node != null && node.getLeftType() == 0) {
+            System.out.println(node);
+            node = node.getLeft();
+        }
+        while (node != null && node.getRightType() == 1) {
+            System.out.println(node);
+            node = node.getRight();
+        }
+        System.out.println(node);
+
+    }
 
 }
 
