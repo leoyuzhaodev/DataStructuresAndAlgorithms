@@ -25,7 +25,7 @@ public class ThreadedBinaryTreeDemo {
     }
 
     public static void main(String[] args) {
-        test2();
+        test3();
         System.out.println();
     }
 
@@ -44,6 +44,14 @@ public class ThreadedBinaryTreeDemo {
     public static void test2() {
         threadedTree.preThreadedTree();
         threadedTree.preThreadedTreeShow();
+    }
+
+    /**
+     * 测试后序线索化二叉树相关
+     */
+    public static void test3() {
+        threadedTree.postThreadedTree();
+        threadedTree.postThreadedTreeShow();
     }
 }
 
@@ -104,7 +112,7 @@ class ThreadedTree {
      */
     public void infixThreadedShow() {
         if (root == null) {
-            System.out.println("当前树为空，无法线索化...");
+            System.out.println("当前树为空，无法线索化遍历...");
         } else {
             infixThreadedShow(root);
         }
@@ -164,11 +172,119 @@ class ThreadedTree {
         infixThreadedShow(node);
     }
 
-    // 后序线索化二叉树
-    // 遍历后序线索化二叉树
+    /**
+     * 后序线索化二叉树入口
+     */
+    public void postThreadedTree() {
+        if (root == null) {
+            System.out.println("当前树为空，无法线索化...");
+        } else {
+            postThreadedTree(root);
+        }
+    }
 
     /**
-     * 前序线索化二叉树
+     * 后序线索化二叉树
+     *
+     * @param node
+     */
+    private void postThreadedTree(ThreadedTreeNode node) {
+        // 向左递归
+        if (node.getLeft() != null) {
+            postThreadedTree(node.getLeft());
+        }
+        // 向右递归
+        if (node.getRight() != null) {
+            postThreadedTree(node.getRight());
+        }
+        // 处理当前节点的前驱节点
+        if (node.getLeft() == null) {
+            node.setLeftType(1);
+            node.setLeft(pre);
+        }
+        // 处理上一个节点的后继节点
+        if (pre != null && pre.getRight() == null) {
+            pre.setRightType(1);
+            pre.setRight(node);
+        }
+        // 重置节点
+        pre = node;
+    }
+
+    /**
+     * 遍历后序线索化二叉树
+     */
+    public void postThreadedTreeShow() {
+        if (root == null) {
+            System.out.println("当前树为空，无法线索化遍历...");
+        } else {
+            postThreadedTreeShowV1(root);
+        }
+    }
+
+    /**
+     * 遍历后序线索化二叉树(算法不正确)
+     *
+     * @param node
+     */
+    private void postThreadedTreeShow(ThreadedTreeNode node) {
+        // 1，左递归
+        if (node.getLeftType() == 0) {
+            postThreadedTreeShow(node.getLeft());
+        }
+        ThreadedTreeNode temp = node;
+        if (isLeaf(node)) {
+            // 2，输出
+            // 2.1，输出当前节点的前一个节点：条件：当前节点为叶子节点且当前节点的前一0个节点不能为空
+            if (node.getLeft() != null && node.getLeftType() == 1) {
+                System.out.println(node.getLeft());
+            }
+            // 2.2，输出当前节点：条件：当前节点为叶子节点
+            if (node.getLeftType() == 1) {
+                System.out.println(node);
+            }
+            // 2.3，输出当前节点之后的节点：
+            // 如果当前节点是头节点：那么就输出当前节点的后一个节点，且该节点不能为当前节点的父节点
+            // 如果当前节点不是头节点：那么就依次输出当前节点的后继节点
+            if (node.getLeftType() == 1 && node.getLeft() == null) {
+                if (node.getRight() != null && node.getRight().getLeftType() == 1) {
+                    System.out.println(node.getRight());
+                }
+            } else {
+                while (node.getRight() != null && node.getRightType() == 1) {
+                    System.out.println(node.getRight());
+                    node = node.getRight();
+                }
+            }
+        }
+        // 3，右递归：条件：当前节点不为叶子节点 且 当前节点的右子节点不为叶子节点 且 当且节点的右节点类型不能为1
+        if (!isLeaf(temp) && temp.getRightType() != 1 && !isLeaf(temp.getRight())) {
+            postThreadedTreeShow(node.getRight());
+        }
+    }
+
+    /**
+     * 遍历后序线索化二叉树
+     *
+     * @param node
+     */
+    public void postThreadedTreeShowV1(ThreadedTreeNode node) {
+        if (node.getLeftType() != 1) {
+            postThreadedTreeShowV1(node.getLeft());
+        }
+        if (node.getRightType() != 1) {
+            postThreadedTreeShowV1(node.getRight());
+        }
+        System.out.println(node);
+    }
+
+    public boolean isLeaf(ThreadedTreeNode node) {
+        return node.getLeftType() == 1 && node.getRightType() == 1;
+    }
+
+
+    /**
+     * 前序线索化二叉树入口
      */
     public void preThreadedTree() {
         if (root == null) {
@@ -179,7 +295,7 @@ class ThreadedTree {
     }
 
     /**
-     * 前序线索化二叉树
+     * 前序线索化二叉树入口
      *
      * @param node
      */
@@ -200,12 +316,12 @@ class ThreadedTree {
         // 重置 pre
         pre = node;
 
-        // 左递归
+        // 左递归，注意判断语句：node.getLeftType() == 0
         if (node.getLeft() != null && node.getLeftType() == 0) {
             preThreadedTree(node.getLeft());
         }
 
-        // 右递归
+        // 右递归，注意判断语句：node.getRightType() == 0
         if (node.getRight() != null && node.getRightType() == 0) {
             preThreadedTree(node.getRight());
         }
@@ -213,11 +329,11 @@ class ThreadedTree {
     }
 
     /**
-     * 遍历前序线索化二叉树
+     * 遍历前序线索化二叉树入口
      */
     public void preThreadedTreeShow() {
         if (root == null) {
-            System.out.println("当前树为空，无法线索化...");
+            System.out.println("当前树为空，无法线索化遍历...");
         } else {
             preThreadedTreeShow(root);
         }
