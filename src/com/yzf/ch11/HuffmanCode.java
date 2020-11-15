@@ -75,7 +75,7 @@ public class HuffmanCode {
      * 根据赫夫曼树生成赫夫曼码表
      *
      * @param map
-     * @param root
+     * @param node
      * @param stringBuilder
      * @return
      */
