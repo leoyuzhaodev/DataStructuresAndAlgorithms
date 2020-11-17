@@ -11,9 +11,150 @@ import java.util.*;
 public class HuffmanCode {
 
     public static void main(String[] args) {
-        String code = getHuffmanCode("i like like like java do you like a java");
-        System.out.println(code);
-        System.out.println(code.length());
+        test4();
+    }
+
+    /**
+     * 测试生成Huffman解码
+     */
+    public static void test2() {
+        String str = "i like like like java do you like a java";
+        byte[] bytes = huffmanZip(str);
+    }
+
+    /**
+     * 测试生成Huffman编码
+     */
+    public static void test1() {
+        String str = "i like like like java do you like a java";
+        String huffmanCode = getHuffmanCode(str);
+        System.out.println("huffmanCode:" + huffmanCode);
+    }
+
+    public static void test3() {
+        String str = "i like like like java do you like a java";
+        Map<Byte, String> huffmanCodeMap = getHuffmanCodeMap(str);
+        String huffmanCode = generateHuffmanCode(str, huffmanCodeMap);
+        System.out.println(huffmanCode.length());
+    }
+
+    /**
+     * 测试还原 huffmanCode 的正确性
+     */
+    public static void test4() {
+        String str = "i like like like java do you like a java";
+        String huffmanCode = getHuffmanCode(str);
+        byte[] bytes = huffmanZip(str);
+        String uncompressStr = getHuffmanCodeFromByte(bytes);
+        String str1 = getOriginalStrFromHuffmanMap(uncompressStr, getHuffmanCodeMap(str));
+        System.out.println("str1:" + str1);
+        System.out.println(str.equals(str1));
+
+    }
+
+    /**
+     * 将赫夫曼编码后的byte[]->二进制字符串（赫夫曼编码后的字符串）
+     *
+     * @param huffmanByteZipArray
+     * @return
+     */
+    public static String getHuffmanCodeFromByte(byte[] huffmanByteZipArray) {
+        // 1，得到最后一位的长度
+        int bLength = huffmanByteZipArray.length;
+        int endLength = huffmanByteZipArray[bLength - 1];
+        // 2，遍历压缩数组，将每一个元素生成对应的二进制
+        StringBuilder binaryStr = new StringBuilder();
+        String tempBinary = null; // 临时存储截取的二进制
+        int tempLength = 8; // 截取字符串的长度
+        int ele = -1;
+        for (int i = 0; i < bLength - 1; i++) {
+            ele = huffmanByteZipArray[i];
+            if (i == bLength - 2) {
+                ele |= ((int) Math.pow(2, endLength));
+                tempLength = endLength;
+            } else {
+                if (ele >= 0) {
+                    ele = ele | 256;
+                }
+            }
+            tempBinary = Integer.toBinaryString(ele);
+            tempBinary = tempBinary.substring(tempBinary.length() - tempLength);
+            binaryStr.append(tempBinary);
+        }
+        return binaryStr.toString();
+    }
+
+    /**
+     * 将赫夫曼编码后的字符串根据赫夫曼编码表还原成原来的字符串
+     *
+     * @param huffmanCode
+     * @param huffmanMap
+     * @return
+     */
+    public static String getOriginalStrFromHuffmanMap(String huffmanCode, Map<Byte, String> huffmanMap) {
+
+        // 1，Map<Byte,String> -> Map<String,Byte>
+        Map<String, Byte> huffmanMap1 = new HashMap<>();
+        for (Map.Entry<Byte, String> entry : huffmanMap.entrySet()) {
+            huffmanMap1.put(entry.getValue(), entry.getKey());
+        }
+        // 2，遍历HuffmanCode反向生成原来的字符串
+        int hcLength = huffmanCode.length();
+        StringBuilder originalStr = new StringBuilder();
+        int endIndex = 0;
+        boolean flag = false; // 匹配标识
+        for (int start = 0; start < hcLength; ) {
+            endIndex = start + 1;
+            while (endIndex <= hcLength) {
+                Byte originalChar = huffmanMap1.get(huffmanCode.substring(start, endIndex));
+                if (originalChar != null) {
+                    originalStr.append(Character.toChars(originalChar));
+                    flag = true;
+                    break;
+                }
+                endIndex++;
+            }
+            if (flag) {
+                start = endIndex;
+            } else {
+                start += 1;
+            }
+        }
+        return originalStr.toString();
+    }
+
+
+    /**
+     * 对使用赫夫曼编码后的字符串进行压缩
+     *
+     * @param originalStr
+     * @return
+     */
+    public static byte[] huffmanZip(String originalStr) {
+        // 1，根据原始字符串获取赫夫曼编码后的字符串
+        String huffmanCode = getHuffmanCode(originalStr);
+
+        // 2，将编码后的字符串8位一个byte存放在byte[]中，编码后的字符串长度获取压缩byte[]的长度
+        int zipByteArrayLen = (huffmanCode.length() + 7) / 8 + 1;
+
+        // 3，开始压缩
+        byte[] zipByteArray = new byte[zipByteArrayLen];
+        int zipByteArrayIndex = 0;
+        StringBuilder stringBuilder = new StringBuilder(huffmanCode);
+        String temp = null;
+        for (int i = 0; i < stringBuilder.length(); i += 8) {
+            if (i + 8 > stringBuilder.length()) {
+                temp = stringBuilder.substring(i);
+            } else {
+                temp = stringBuilder.substring(i, i + 8);
+            }
+            zipByteArray[zipByteArrayIndex++] = (byte) Integer.parseInt(temp, 2);
+        }
+
+        // 4,存储赫夫曼编码后的字符串，不足8位的长度
+        zipByteArray[zipByteArrayLen - 1] = (byte) (huffmanCode.length() % 8);
+
+        return zipByteArray;
     }
 
     // 1，获取编码
@@ -38,6 +179,36 @@ public class HuffmanCode {
         // 5，返回数据
         return huffmanCode;
     }
+
+
+    /**
+     * 根据赫夫曼树生成赫夫曼码表
+     *
+     * @param originalStr
+     * @return
+     */
+    private static Map<Byte, String> getHuffmanCodeMap(String originalStr) {
+
+        if (originalStr == null) {
+            return null;
+        }
+
+        // 1，将原生string生成 字符 与 权重(出现次数) 的码表，并将该码表构建成 List<CodeNode>
+        List<CodeNode> codeNodes = getCharNode(originalStr);
+
+        // 2，生成Huffman树
+        CodeNode root = getHuffmanTree(codeNodes);
+
+        // 3，根据Huffman树生成，编码表
+        if (root == null) {
+            return null;
+        } else {
+            Map<Byte, String> map = new HashMap<>();
+            StringBuilder stringBuilder = new StringBuilder("");
+            return getHuffmanCodeMap(map, root, stringBuilder);
+        }
+    }
+
 
     /**
      * 将原生字符串根据编码转化成为对应的字符串
